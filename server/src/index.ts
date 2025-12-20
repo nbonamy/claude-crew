@@ -75,7 +75,7 @@ app.all('/mcp', async (req: Request, res: Response) => {
         onsessioninitialized: (sid: string) => {
           // Store transport when session is initialized
           transports[sid] = transport;
-          console.log(`✓ Session initialized: ${sid.substring(0, 8)}...`);
+          // console.log(`✓ Session initialized: ${sid.substring(0, 8)}...`);
         }
       });
 
