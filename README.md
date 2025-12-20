@@ -4,16 +4,20 @@ Async agent-to-agent communication for Claude Code via MCP.
 
 ## Quick Start
 
+**Terminal 1**: Start the shared server
+```bash
+npx @nbonamy/claude-crew
+```
+
+**Terminal 2**: Start Claude Code with plugin
 ```bash
 claude --plugin-dir ~/src/claude-crew/plugin
 ```
 
-That's it! The plugin automatically:
-1. Starts the MCP server via `npx @nbonamy/claude-crew`
-2. Registers your agent on startup
-3. Provides `/crew:send`, `/crew:check`, `/crew:agents` commands
+The plugin connects to the HTTP server on `http://localhost:3000/mcp`.
+Now you have `/crew:send`, `/crew:check`, `/crew:agents` available!
 
-No manual server startup needed!
+Multiple Claude Code instances can connect to the same server.
 
 ## Development
 

@@ -4,7 +4,7 @@ input=$(cat)
 session_id=$(echo "$input" | jq -r '.session_id')
 cwd=$(pwd)
 
-SERVER_URL="${AGENT_MANAGER_URL:-http://localhost:3001}"
+SERVER_URL="${AGENT_MANAGER_URL:-http://localhost:3000}"
 
 response=$(curl -s -X POST "$SERVER_URL/api/register" \
   -H "Content-Type: application/json" \
