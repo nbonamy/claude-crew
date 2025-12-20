@@ -8,8 +8,9 @@
   "hooks": "./hooks/hooks.json",
   "mcpServers": {
     "crew": {
-      "type": "http",
-      "url": "http://localhost:3000/mcp"
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@nbonamy/claude-crew"]
     }
   }
 }
