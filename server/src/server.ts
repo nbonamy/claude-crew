@@ -1,5 +1,4 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { registerAgent, registerAgentSchema } from './tools/register-agent.js';
 import { unregisterAgent, unregisterAgentSchema } from './tools/unregister-agent.js';
 import { listAgents, listAgentsSchema } from './tools/list-agents.js';

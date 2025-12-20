@@ -9,7 +9,9 @@
       "Bash(npm install:*)",
       "Bash(make install:*)",
       "Bash(make build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(lsof:*)",
+      "Bash(grep:*)"
     ]
   }
 }
