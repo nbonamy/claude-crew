@@ -1,0 +1,9 @@
+{
+  "name": "crew",
+  "description": "Agent-to-agent async communication via MCP",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nicolas Bonamy"
+  },
+  "hooks": "./hooks/hooks.json"
+}

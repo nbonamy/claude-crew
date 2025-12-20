@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(npm install)",
+      "Bash(npm view:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(make install:*)",
+      "Bash(make build:*)",
+      "Bash(/Users/nbonamy/src/claude-crew/plugin/scripts/startup.sh)",
+      "Bash(claude plugin list:*)",
+      "Bash(find:*)",
+      "Bash(claude --plugin-dir ~/src/claude-crew/plugin --version:*)",
+      "Bash(git init:*)"
+    ]
+  }
+}
