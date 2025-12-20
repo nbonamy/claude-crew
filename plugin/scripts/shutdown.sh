@@ -4,7 +4,7 @@ input=$(cat)
 session_id=$(echo "$input" | jq -r '.session_id')
 reason=$(echo "$input" | jq -r '.reason')
 
-SERVER_URL="${AGENT_MANAGER_URL:-http://localhost:3000}"
+SERVER_URL="${AGENT_MANAGER_URL:-http://localhost:3001}"
 
 response=$(curl -s -X POST "$SERVER_URL/api/unregister" \
   -H "Content-Type: application/json" \

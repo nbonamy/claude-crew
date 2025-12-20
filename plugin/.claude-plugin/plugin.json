@@ -8,7 +8,7 @@
   "hooks": "./hooks/hooks.json",
   "mcpServers": {
     "crew": {
-      "type": "stdio",
+      "type": "http",
       "command": "npx",
       "args": ["@nbonamy/claude-crew"]
     }
