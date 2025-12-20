@@ -5,6 +5,17 @@ import { storage } from './storage.js';
 import type { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 
+// Helper to check if a request is an MCP initialization request
+function isInitializeRequest(body: unknown): boolean {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'jsonrpc' in body &&
+    'method' in body &&
+    (body as Record<string, unknown>).method === 'initialize'
+  );
+}
+
 const PORT = process.env.PORT || 3000;
 const app = express();
 
@@ -18,7 +29,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'claude-crew' });
 });
 
-// Simple REST API for hooks
+// Simple REST API for hooks (bypasses MCP)
 app.post('/api/register', (req, res) => {
   const { sessionId, baseFolder, name } = req.body;
   if (!sessionId || !baseFolder) {
@@ -49,51 +60,62 @@ app.post('/api/unregister', (req, res) => {
   }
 });
 
-// Streamable HTTP endpoint for MCP
-app.post('/mcp', async (req: Request, res: Response) => {
+// MCP endpoint for both GET and POST
+app.all('/mcp', async (req: Request, res: Response) => {
   try {
-    const sessionId = randomUUID();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => sessionId,
-    });
+    const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
-    transports[sessionId] = transport;
+    if (sessionId && transports[sessionId]) {
+      // Reuse existing transport for this session
+      await transports[sessionId].handleRequest(req, res, req.body);
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      // New initialization request - create new transport and server
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sid: string) => {
+          // Store transport when session is initialized
+          transports[sid] = transport;
+          // console.log(`✓ Session initialized: ${sid.substring(0, 8)}...`);
+        }
+      });
 
-    transport.onclose = () => {
-      delete transports[sessionId];
-    };
+      // Set up onclose handler to clean up
+      transport.onclose = () => {
+        const sid = transport.sessionId;
+        if (sid && transports[sid]) {
+          console.log(`🔌 Transport closed for session ${sid.substring(0, 8)}...`);
+          delete transports[sid];
+        }
+      };
 
-    const mcpServer = createServer();
-    await mcpServer.connect(transport);
-    await transport.handleRequest(req, res, { parsedBody: req.body });
-  } catch (error) {
-    console.error('✗ Error handling MCP request:', error);
-    if (!res.headersSent) {
-      res.status(500).send('Error handling MCP request');
+      // Create and connect MCP server to this transport
+      const server = createServer();
+      await server.connect(transport);
+
+      // Handle the initialization request
+      await transport.handleRequest(req, res, req.body);
+    } else {
+      // Invalid request
+      res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32000,
+          message: 'Bad Request: Invalid session or not an initialization request'
+        },
+        id: null
+      });
     }
-  }
-});
-
-app.get('/mcp', async (req: Request, res: Response) => {
-  try {
-    const sessionId = randomUUID();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => sessionId,
-    });
-
-    transports[sessionId] = transport;
-
-    transport.onclose = () => {
-      delete transports[sessionId];
-    };
-
-    const mcpServer = createServer();
-    await mcpServer.connect(transport);
-    await transport.handleRequest(req, res);
   } catch (error) {
     console.error('✗ Error handling MCP request:', error);
     if (!res.headersSent) {
-      res.status(500).send('Error handling MCP request');
+      res.status(500).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32603,
+          message: 'Internal server error'
+        },
+        id: null
+      });
     }
   }
 });
@@ -103,7 +125,27 @@ app.listen(PORT, () => {
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   MCP: http://localhost:${PORT}/mcp`);
   console.log();
-  console.log('📝 Configure in Claude Code:');
-  console.log(`   claude mcp add --transport http crew --scope user http://localhost:${PORT}/mcp`);
+  console.log('📝 To configure Claude Code:');
   console.log();
+  console.log('1. Add MCP server (choose scope):');
+  console.log('   Local:  claude mcp add --transport http crew --scope local http://localhost:' + PORT + '/mcp');
+  console.log('   User:   claude mcp add --transport http crew --scope user http://localhost:' + PORT + '/mcp');
+  console.log();
+  console.log('2. Install plugin:');
+  console.log('   claude --plugin-dir ~/src/claude-crew/plugin');
+  console.log();
+});
+
+// Handle shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down server...');
+  for (const sessionId in transports) {
+    try {
+      await transports[sessionId].close();
+      delete transports[sessionId];
+    } catch (error) {
+      console.error(`Error closing transport for session ${sessionId}:`, error);
+    }
+  }
+  process.exit(0);
 });
