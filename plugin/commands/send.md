@@ -1,20 +1,12 @@
----
-description: Send a message to another agent
----
-
 # Send Message
 
-Send a message to another registered agent using the crew MCP server.
+Use the `send-message` MCP tool based on arguments: $ARGUMENTS.
+If arguments are empty, try to deduce it from the context.
+If you can't ask more details to the user.
 
-**Usage**: `/send <recipient> <message>`
-
-**Example**: `/send desktop Hey, can you run the tests?`
-
----
-
-Use the `send-message` MCP tool with:
+`send-message` parameters:
 - `from`: Your session ID (provided at startup)
-- `to`: First argument from user ($1)
+- `to`: Recipient of message 
 - `content`: Rest of arguments (everything after first argument)
 
 First call `list-agents` to find available agents, then send the message.
