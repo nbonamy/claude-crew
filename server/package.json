@@ -1,9 +1,17 @@
 {
-  "name": "claude-crew-server",
+  "name": "@nbonamy/claude-crew",
   "version": "1.0.0",
-  "description": "MCP server for async agent communication",
+  "description": "Async agent-to-agent communication for Claude Code via MCP",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "claude-crew": "./bin/index.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
