@@ -15,9 +15,11 @@ response=$(curl -s -X POST "$SERVER_URL/api/register" \
 
 if echo "$response" | jq -e '.success' > /dev/null 2>&1; then
   agent_name=$(echo "$response" | jq -r '.agent.name')
-  echo "Agent registered with crew as: $agent_name"
-  echo "Your session ID is: $session_id"
-  echo "Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)"
+  echo -n "{ \"hookSpecificOutput\": { \"hookEventName\": \"SessionStart\", \"additionalContext\": \""
+  echo -n "Agent registered with crew as: $agent_name"
+  echo -n "Your crew session ID is: $session_id"
+  echo -n "Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)"
+  echo "\" } }"
 else
   echo "⚠ Failed to register with crew"
 fi
