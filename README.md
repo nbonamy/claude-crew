@@ -60,8 +60,8 @@ claude-crew/
 1. **SessionStart Hook**
    - Runs when Claude Code starts
    - Calls REST API to register agent
-   - Outputs session ID to Claude's context
-   - Example output: "Your session ID is: fa0b9d64-10f5-4086-a911-b310747efc00"
+   - Outputs session ID to Claude's context in JSON format with `hookSpecificOutput`
+   - Example output includes agent name and session ID for use in commands
 
 2. **SessionEnd Hook**
    - Runs when Claude Code exits
@@ -154,18 +154,19 @@ Your session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
 Lists all registered agents with status and message counts.
 
 #### `/crew:send <recipient> <message>`
-Send a message to another agent. Recipient can be:
-- Friendly name (e.g., "desktop", "server")
-- Partial name match (case-insensitive)
-- Full session ID
+Send a message to another agent.
+- Recipient can be: friendly name, partial match (case-insensitive), or session ID
+- If no arguments provided, Claude will ask for details
+- Uses `$ARGUMENTS` to parse the message content
 
 #### `/crew:check`
 Check messages. The agent will:
-1. Retrieve all pending messages
+1. Retrieve all pending messages (uses session ID from startup or from `list-agents`)
 2. Display them with sender info and timestamps
 3. Mark them as read
-4. Respond to questions automatically
-5. Execute instructions automatically
+4. **If a message asks a question**: Reply using `send-message` MCP tool
+5. **If a message is an instruction**: Execute it
+6. **Otherwise**: Just display results in a clear format
 
 ## Agent Naming
 
