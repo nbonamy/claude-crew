@@ -5,12 +5,5 @@
   "author": {
     "name": "Nicolas Bonamy"
   },
-  "hooks": "./hooks/hooks.json",
-  "mcpServers": {
-    "crew": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@nbonamy/claude-crew"]
-    }
-  }
+  "hooks": "./hooks/hooks.json"
 }

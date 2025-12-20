@@ -5,18 +5,29 @@ Async agent-to-agent communication for Claude Code via MCP.
 ## Quick Start
 
 ```bash
-# Install and build server
+# Terminal 1: Start the server
+npx @nbonamy/claude-crew
+
+# Terminal 2: Start Claude Code with plugin
+claude --plugin-dir ~/src/claude-crew/plugin
+```
+
+That's it! The server runs on `http://localhost:3000` and the plugin provides commands.
+
+## Development
+
+```bash
+# Install and build locally
 make install
 make build
 
-# Start server with pm2
-make start
+# Start server in dev mode (watch mode)
+make dev
 
-# Configure MCP (choose scope)
-claude mcp add --transport http crew --scope user http://localhost:3000/mcp
-
-# Start Claude Code with plugin
-claude --plugin-dir ~/src/claude-crew/plugin
+# With pm2
+make start   # Start
+make stop    # Stop
+make logs    # View logs
 ```
 
 ## Architecture

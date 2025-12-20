@@ -9,7 +9,8 @@
       "Bash(npm install:*)",
       "Bash(make install:*)",
       "Bash(make build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm publish)"
     ]
   }
 }
