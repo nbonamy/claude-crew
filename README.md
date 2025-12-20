@@ -12,7 +12,8 @@ npx @nbonamy/claude-crew
 claude --plugin-dir ~/src/claude-crew/plugin
 ```
 
-That's it! The server runs on `http://localhost:3000` and the plugin provides commands.
+The plugin automatically connects to the HTTP server on `http://localhost:3000/mcp`.
+Now you have `/crew:send`, `/crew:check`, `/crew:agents` available!
 
 ## Development
 
