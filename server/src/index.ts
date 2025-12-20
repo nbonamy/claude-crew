@@ -1,8 +1,9 @@
 import express from 'express';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer } from './server.js';
 import { storage } from './storage.js';
 import type { Request, Response } from 'express';
+import { randomUUID } from 'crypto';
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -10,7 +11,7 @@ const app = express();
 app.use(express.json());
 
 // Store transports by session ID
-const transports: Record<string, SSEServerTransport> = {};
+const transports: Record<string, StreamableHTTPServerTransport> = {};
 
 // Health check
 app.get('/health', (req, res) => {
@@ -48,22 +49,19 @@ app.post('/api/unregister', (req, res) => {
   }
 });
 
-// SSE endpoint for establishing the stream
-app.get('/sse', async (req: Request, res: Response) => {
-  
-  // console.log('📡 New SSE connection');
-
+// Streamable HTTP endpoint for MCP
+app.post('/mcp', async (req: Request, res: Response) => {
   try {
-    // Create a new SSE transport for the client
-    const transport = new SSEServerTransport('/messages', res);
+    const sessionId = randomUUID();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: () => sessionId,
+    });
 
     // Store the transport by session ID
-    const sessionId = transport.sessionId;
     transports[sessionId] = transport;
 
     // Set up onclose handler to clean up transport when closed
     transport.onclose = () => {
-      // console.log(`🔌 SSE transport closed for session ${sessionId}`);
       delete transports[sessionId];
     };
 
@@ -71,40 +69,12 @@ app.get('/sse', async (req: Request, res: Response) => {
     const server = createServer();
     await server.connect(transport);
 
-    // console.log(`✓ SSE stream established with session ID: ${sessionId}`);
+    // Handle the request with the transport
+    await transport.handleRequest(req, res, { parsedBody: req.body });
   } catch (error) {
-    console.error('✗ Error establishing SSE stream:', error);
+    console.error('✗ Error handling MCP request:', error);
     if (!res.headersSent) {
-      res.status(500).send('Error establishing SSE stream');
-    }
-  }
-});
-
-// Messages endpoint for receiving client JSON-RPC requests
-app.post('/messages', async (req: Request, res: Response) => {
-  // Extract session ID from URL query parameter
-  const sessionId = req.query.sessionId as string | undefined;
-
-  if (!sessionId) {
-    console.error('✗ No session ID provided in request URL');
-    res.status(400).send('Missing sessionId parameter');
-    return;
-  }
-
-  const transport = transports[sessionId];
-  if (!transport) {
-    console.error(`✗ No active transport found for session ID: ${sessionId}`);
-    res.status(404).send('Session not found');
-    return;
-  }
-
-  try {
-    // Handle the POST message with the transport
-    await transport.handlePostMessage(req, res, req.body);
-  } catch (error) {
-    console.error('✗ Error handling request:', error);
-    if (!res.headersSent) {
-      res.status(500).send('Error handling request');
+      res.status(500).send('Error handling MCP request');
     }
   }
 });
@@ -112,13 +82,13 @@ app.post('/messages', async (req: Request, res: Response) => {
 app.listen(PORT, () => {
   console.log(`🚀 Claude Crew MCP Server running on http://localhost:${PORT}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
-  console.log(`   SSE: http://localhost:${PORT}/sse`);
+  console.log(`   MCP: http://localhost:${PORT}/mcp`);
   console.log();
   console.log('📝 To configure Claude Code:');
   console.log();
   console.log('1. Add MCP server (choose scope):');
-  console.log('   Local:  claude mcp add --transport sse crew --scope local http://localhost:' + PORT + '/sse');
-  console.log('   User:   claude mcp add --transport sse crew --scope user http://localhost:' + PORT + '/sse');
+  console.log('   Local:  claude mcp add --transport http crew --scope local http://localhost:' + PORT + '/mcp');
+  console.log('   User:   claude mcp add --transport http crew --scope user http://localhost:' + PORT + '/mcp');
   console.log();
   console.log('2. Install plugin:');
   console.log('   claude --plugin-dir ~/src/claude-crew/plugin');

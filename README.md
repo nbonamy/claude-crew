@@ -13,7 +13,7 @@ make build
 make start
 
 # Configure MCP (choose scope)
-claude mcp add --transport sse crew --scope user http://localhost:3000/sse
+claude mcp add --transport http crew --scope user http://localhost:3000/mcp
 
 # Start Claude Code with plugin
 claude --plugin-dir ~/src/claude-crew/plugin
@@ -40,10 +40,10 @@ claude-crew/
 
 ### Server Components
 
-1. **MCP Server (SSE Transport)**
-   - Listens on http://localhost:3000/sse
+1. **MCP Server (Streamable HTTP Transport)**
+   - Listens on http://localhost:3000/mcp
    - Provides 5 MCP tools: register-agent, unregister-agent, list-agents, send-message, check-messages
-   - Each SSE connection gets its own server instance sharing the same in-memory storage
+   - Each HTTP connection gets its own server instance sharing the same in-memory storage
 
 2. **REST API (for Hooks)**
    - POST /api/register - Called by SessionStart hook
@@ -94,10 +94,10 @@ Choose a scope:
 
 ```bash
 # User scope (recommended)
-claude mcp add --transport sse crew --scope user http://localhost:3000/sse
+claude mcp add --transport http crew --scope user http://localhost:3000/mcp
 
 # Local scope (current project only)
-claude mcp add --transport sse crew --scope local http://localhost:3000/sse
+claude mcp add --transport http crew --scope local http://localhost:3000/mcp
 
 # Verify
 claude mcp list
@@ -231,9 +231,9 @@ curl http://localhost:3000/api/list
 
 Hooks run at session startup/shutdown, before MCP connection is established. They need simple HTTP endpoints. The MCP tools are used by Claude during the session for sending/checking messages.
 
-### Why SSE Instead of HTTP?
+### Why Streamable HTTP?
 
-SSE (Server-Sent Events) transport allows the server to push notifications to clients. While deprecated in favor of HTTP transport, it's simpler to implement for localhost servers.
+Streamable HTTP is the modern transport protocol for MCP, replacing the deprecated SSE transport. It provides a cleaner request/response model and better compatibility with standard HTTP clients.
 
 ### Why In-Memory Storage?
 
