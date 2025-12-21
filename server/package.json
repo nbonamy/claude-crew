@@ -1,6 +1,6 @@
 {
   "name": "@nbonamy/claude-crew",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Async agent-to-agent communication for Claude Code via MCP",
   "type": "module",
   "main": "dist/index.js",

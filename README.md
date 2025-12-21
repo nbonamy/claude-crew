@@ -15,7 +15,7 @@ claude --plugin-dir ~/src/claude-crew/plugin
 ```
 
 The plugin connects to the HTTP server on `http://localhost:3000/mcp`.
-Now you have `/crew:send`, `/crew:check`, `/crew:agents` available!
+Now you have `/crew:send`, `/crew:check`, `/crew:list` available!
 
 Multiple Claude Code instances can connect to the same server.
 
@@ -43,12 +43,12 @@ claude-crew/
 │   ├── src/
 │   │   ├── storage.ts      # In-memory agents + messages
 │   │   ├── server.ts       # McpServer with 5 MCP tools
-│   │   ├── index.ts        # Express + SSE transport + REST API
+│   │   ├── index.ts        # Express + Streamable HTTP transport + REST API
 │   │   └── tools/          # MCP tool implementations
 │   └── ecosystem.config.cjs
 └── plugin/          # Claude Code plugin
     ├── hooks/              # Auto-register/unregister on session start/end
-    ├── commands/           # /crew:send, /crew:check, /crew:agents
+    ├── commands/           # /crew:send, /crew:check, /crew:list
     └── scripts/            # Hook shell scripts
 ```
 
@@ -75,17 +75,20 @@ claude-crew/
 
 1. **SessionStart Hook**
    - Runs when Claude Code starts
-   - Calls REST API to register agent
-   - Outputs session ID to Claude's context in JSON format with `hookSpecificOutput`
-   - Example output includes agent name and session ID for use in commands
+   - Calls REST API `/api/register` to register agent with its folder path
+   - Returns `hookSpecificOutput` with `additionalContext` containing:
+     - Agent name
+     - Session ID
+     - Instructions for using crew MCP tools
+   - Session ID is required for all crew MCP tool calls
 
 2. **SessionEnd Hook**
    - Runs when Claude Code exits
-   - Calls REST API to unregister agent
+   - Calls REST API `/api/unregister` to remove agent from crew
 
-3. **Commands** (namespaced as /crew:*)
-   - `/crew:agents` - List all registered agents
-   - `/crew:send <recipient> <message>` - Send message to another agent
+3. **Commands**
+   - `/crew:list` - List all registered agents
+   - `/crew:send` - Send message to another agent
    - `/crew:check` - Check and respond to messages
 
 ## Setup
@@ -93,6 +96,9 @@ claude-crew/
 ### 1. Start the Server
 
 ```bash
+# Using npm package (simplest)
+npx @nbonamy/claude-crew
+
 # Development (with hot reload)
 make dev
 
@@ -136,13 +142,13 @@ claude --plugin-dir ~/src/claude-crew/plugin
 $ claude --plugin-dir ~/src/claude-crew/plugin
 
 Agent registered with crew as: project-desktop
-Your session ID is: fa0b9d64-10f5-4086-a911-b310747efc00
-Use this session ID when calling crew MCP tools
+Your crew session ID is: fa0b9d64-10f5-4086-a911-b310747efc00
+Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
 
-> /crew:agents
+> /crew:list
 # Shows all registered agents
 
-> /crew:send server Can you run the tests?
+> /crew:send ask server to run the tests and send me a report
 # Message sent!
 ```
 
@@ -151,7 +157,8 @@ Use this session ID when calling crew MCP tools
 $ claude --plugin-dir ~/src/claude-crew/plugin
 
 Agent registered with crew as: project-server
-Your session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
+Your crew session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
+Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
 
 > /crew:check
 # [UNREAD] From: project-desktop
@@ -160,29 +167,23 @@ Your session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
 > Running tests...
 # (agent executes the request)
 
-> /crew:send desktop Tests passed! All 42 tests green.
+> Sending report to desktop: All 42 tests green!
 # Message sent!
 ```
 
 ### Commands
 
-#### `/crew:agents`
-Lists all registered agents with status and message counts.
+#### `/crew:list`
+List all registered agents with their session IDs, folders, and message counts.
 
-#### `/crew:send <recipient> <message>`
-Send a message to another agent.
-- Recipient can be: friendly name, partial match (case-insensitive), or session ID
-- If no arguments provided, Claude will ask for details
-- Uses `$ARGUMENTS` to parse the message content
+#### `/crew:send`
+Send a message to another agent. Natural language parsing - e.g., `/crew:send a message to server about running tests` or just `/crew:send` and Claude deduces from context.
 
 #### `/crew:check`
-Check messages. The agent will:
-1. Retrieve all pending messages (uses session ID from startup or from `list-agents`)
-2. Display them with sender info and timestamps
-3. Mark them as read
-4. **If a message asks a question**: Reply using `send-message` MCP tool
-5. **If a message is an instruction**: Execute it
-6. **Otherwise**: Just display results in a clear format
+Check your messages. Claude will:
+1. Retrieve all pending messages (uses session ID from startup)
+2. Mark them as read
+3. Reply to questions, execute instructions, or display results
 
 ## Agent Naming
 
@@ -191,15 +192,15 @@ Agents are automatically named from their base folder:
 - `/Users/name/work/api-server` → "api-server"
 - `/tmp/test` → "test"
 
-Use `/crew:agents` to see all agent names and find the right recipient.
+Use `/crew:list` to see all agent names and find the right recipient.
 
 ## Message Flow
 
-1. **Registration**: SessionStart hook → REST API → Agent registered → Session ID output to context
+1. **Registration**: SessionStart hook → REST API `/api/register` → Agent registered → `hookSpecificOutput` with session ID & instructions added to context
 2. **Send**: `/crew:send` → Claude calls `send-message` MCP tool → Message queued
 3. **Check**: `/crew:check` → Claude calls `check-messages` MCP tool → Messages retrieved
 4. **Response**: Claude reads message → Executes instruction or replies automatically
-5. **Cleanup**: SessionEnd hook → REST API → Agent unregistered
+5. **Cleanup**: SessionEnd hook → REST API `/api/unregister` → Agent unregistered
 
 ## Development
 
@@ -242,24 +243,6 @@ curl -X POST http://localhost:3000/api/register \
 curl http://localhost:3000/api/list
 ```
 
-## Key Design Decisions
-
-### Why REST API + MCP?
-
-Hooks run at session startup/shutdown, before MCP connection is established. They need simple HTTP endpoints. The MCP tools are used by Claude during the session for sending/checking messages.
-
-### Why Streamable HTTP?
-
-Streamable HTTP is the modern transport protocol for MCP, replacing the deprecated SSE transport. It provides a cleaner request/response model and better compatibility with standard HTTP clients.
-
-### Why In-Memory Storage?
-
-Messages are ephemeral - they're meant for real-time coordination between active sessions. Persistence would add complexity without much benefit. If all agents are offline, there's no one to read the messages anyway.
-
-### Why Session ID in Context?
-
-The startup hook outputs the session ID so Claude has it available throughout the session. This eliminates the need for Claude to look up its own session ID when calling MCP tools.
-
 ## Troubleshooting
 
 ### Plugin not showing up
@@ -269,7 +252,7 @@ Don't copy to ~/.claude/plugins/ - use `--plugin-dir` instead. Manual copying do
 Check that the server is running (`curl http://localhost:3000/health`). Hooks have a 30-second timeout.
 
 ### Messages not received
-Both agents must be registered. Use `/crew:agents` to verify registration. Check server logs with `make logs`.
+Both agents must be registered. Use `/crew:list` to verify registration. Check server logs with `make logs`.
 
 ### Session ID issues
 The startup hook should output your session ID. If not, check the hook logs or restart Claude Code.
