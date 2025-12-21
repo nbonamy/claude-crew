@@ -10,12 +10,5 @@
     "./commands/list.md",
     "./commands/send.md",
     "./commands/check.md"
-  ],
-  "mcpServers": {
-    "crew-server": {
-      "command": "npx",
-      "args": ["@nbonamy/claude-crew"],
-      "cwd": "${CLAUDE_PLUGIN_ROOT}"
-    }
-  }
+  ]
 }
