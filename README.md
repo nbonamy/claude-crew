@@ -2,6 +2,20 @@
 
 Async agent-to-agent communication for Claude Code via MCP.
 
+## Installation
+
+Install the crew plugin from the marketplace:
+
+```bash
+# Add the nbonamy marketplace
+/plugin marketplace add nbonamy/claude-marketplace
+
+# Install the crew plugin
+/plugin install crew@nbonamy
+```
+
+Then follow the Quick Start section below to start the server.
+
 ## Quick Start
 
 **Terminal 1**: Start the shared server
@@ -9,9 +23,9 @@ Async agent-to-agent communication for Claude Code via MCP.
 npx @nbonamy/claude-crew
 ```
 
-**Terminal 2**: Start Claude Code with plugin
+**Terminal 2**: Start Claude Code
 ```bash
-claude --plugin-dir ~/src/claude-crew/plugin
+claude
 ```
 
 The plugin connects to the HTTP server on `http://localhost:3000/mcp`.
@@ -19,23 +33,61 @@ Now you have `/crew:send`, `/crew:check`, `/crew:list` available!
 
 Multiple Claude Code instances can connect to the same server.
 
-## Development
+## Usage
 
+### Basic Workflow
+
+**Terminal 1** (~/project-desktop):
 ```bash
-# Install and build locally
-make install
-make build
+$ claude
 
-# Start server in dev mode (watch mode)
-make dev
+Agent registered with crew as: project-desktop
+Your crew session ID is: fa0b9d64-10f5-4086-a911-b310747efc00
+Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
 
-# With pm2
-make start   # Start
-make stop    # Stop
-make logs    # View logs
+> /crew:list
+# Shows all registered agents
+
+> /crew:send ask server to run the tests and send me a report
+# Message sent!
 ```
 
-## Architecture
+**Terminal 2** (~/project-server):
+```bash
+$ claude
+
+Agent registered with crew as: project-server
+Your crew session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
+Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
+
+> /crew:check
+# [UNREAD] From: project-desktop
+# Message: Can you run the tests?
+
+> Running tests...
+# (agent executes the request)
+
+> Sending report to desktop: All 42 tests green!
+# Message sent!
+```
+
+### Commands
+
+#### `/crew:list`
+List all registered agents with their session IDs, folders, and message counts.
+
+#### `/crew:send`
+Send a message to another agent. Natural language parsing - e.g., `/crew:send a message to server about running tests` or just `/crew:send` and Claude deduces from context.
+
+#### `/crew:check`
+Check your messages. Claude will:
+1. Retrieve all pending messages (uses session ID from startup)
+2. Mark them as read
+3. Reply to questions, execute instructions, or display results
+
+## How It Works
+
+### Architecture
 
 ```
 claude-crew/
@@ -51,8 +103,6 @@ claude-crew/
     ├── commands/           # /crew:send, /crew:check, /crew:list
     └── scripts/            # Hook shell scripts
 ```
-
-## How It Works
 
 ### Server Components
 
@@ -91,7 +141,7 @@ claude-crew/
    - `/crew:send` - Send message to another agent
    - `/crew:check` - Check and respond to messages
 
-## Setup
+## Development Mode Setup
 
 ### 1. Start the Server
 
@@ -132,58 +182,6 @@ claude mcp list
 ```bash
 claude --plugin-dir ~/src/claude-crew/plugin
 ```
-
-## Usage
-
-### Basic Workflow
-
-**Terminal 1** (~/project-desktop):
-```bash
-$ claude --plugin-dir ~/src/claude-crew/plugin
-
-Agent registered with crew as: project-desktop
-Your crew session ID is: fa0b9d64-10f5-4086-a911-b310747efc00
-Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
-
-> /crew:list
-# Shows all registered agents
-
-> /crew:send ask server to run the tests and send me a report
-# Message sent!
-```
-
-**Terminal 2** (~/project-server):
-```bash
-$ claude --plugin-dir ~/src/claude-crew/plugin
-
-Agent registered with crew as: project-server
-Your crew session ID is: 50714b14-d077-48c7-a41b-c9c8fe6e3f63
-Use this session ID when calling crew MCP tools (check-messages, send-message, etc.)
-
-> /crew:check
-# [UNREAD] From: project-desktop
-# Message: Can you run the tests?
-
-> Running tests...
-# (agent executes the request)
-
-> Sending report to desktop: All 42 tests green!
-# Message sent!
-```
-
-### Commands
-
-#### `/crew:list`
-List all registered agents with their session IDs, folders, and message counts.
-
-#### `/crew:send`
-Send a message to another agent. Natural language parsing - e.g., `/crew:send a message to server about running tests` or just `/crew:send` and Claude deduces from context.
-
-#### `/crew:check`
-Check your messages. Claude will:
-1. Retrieve all pending messages (uses session ID from startup)
-2. Mark them as read
-3. Reply to questions, execute instructions, or display results
 
 ## Agent Naming
 
