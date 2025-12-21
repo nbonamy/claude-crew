@@ -6,11 +6,9 @@
     "name": "Nicolas Bonamy"
   },
   "hooks": "./hooks/hooks.json",
-  "mcpServers": {
-    "crew": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["@nbonamy/claude-crew"]
-    }
-  }
+  "commands": [
+    "./commands/list.md",
+    "./commands/send.md",
+    "./commands/check.md"
+  ]
 }
