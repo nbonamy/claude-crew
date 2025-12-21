@@ -87,23 +87,6 @@ Check your messages. Claude will:
 
 ## How It Works
 
-### Architecture
-
-```
-claude-crew/
-├── server/          # MCP server (TypeScript)
-│   ├── src/
-│   │   ├── storage.ts      # In-memory agents + messages
-│   │   ├── server.ts       # McpServer with 5 MCP tools
-│   │   ├── index.ts        # Express + Streamable HTTP transport + REST API
-│   │   └── tools/          # MCP tool implementations
-│   └── ecosystem.config.cjs
-└── plugin/          # Claude Code plugin
-    ├── hooks/              # Auto-register/unregister on session start/end
-    ├── commands/           # /crew:send, /crew:check, /crew:list
-    └── scripts/            # Hook shell scripts
-```
-
 ### Server Components
 
 1. **MCP Server (Streamable HTTP Transport)**
