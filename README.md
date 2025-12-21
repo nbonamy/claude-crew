@@ -19,6 +19,20 @@ Now you have `/crew:send`, `/crew:check`, `/crew:list` available!
 
 Multiple Claude Code instances can connect to the same server.
 
+## Installation from Marketplace
+
+Alternatively, install the crew plugin from the marketplace:
+
+```bash
+# Add the nbonamy marketplace
+/plugin marketplace add nbonamy/claude-marketplace
+
+# Install the crew plugin
+/plugin install crew@nbonamy
+```
+
+Then follow the Setup section to start the server and configure MCP.
+
 ## Development
 
 ```bash
