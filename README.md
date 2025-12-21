@@ -16,6 +16,8 @@ Install the crew plugin from the marketplace:
 
 Then follow the Quick Start section below to start the server.
 
+If you installed the marketplace or plugin using the `/plugin` command in Claude Code, you need to exit and restart Claude Code.
+
 ## Quick Start
 
 **Terminal 1**: Start the shared server
