@@ -12,7 +12,9 @@
       "Bash(find:*)",
       "Bash(lsof:*)",
       "Bash(grep:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git pull:*)"
     ]
   }
 }
