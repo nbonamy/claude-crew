@@ -14,7 +14,8 @@
       "Bash(grep:*)",
       "Bash(git push:*)",
       "Bash(git reset:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(xargs:*)"
     ]
   }
 }

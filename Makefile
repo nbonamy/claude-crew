@@ -9,7 +9,7 @@ build:
 dev:
 	cd server && npm run dev
 
-start:
+start: build
 	cd server && npm run pm2:start
 
 stop:

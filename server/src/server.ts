@@ -4,6 +4,7 @@ import { unregisterAgent, unregisterAgentSchema } from './tools/unregister-agent
 import { listAgents, listAgentsSchema } from './tools/list-agents.js';
 import { sendMessage, sendMessageSchema } from './tools/send-message.js';
 import { checkMessages, checkMessagesSchema } from './tools/check-messages.js';
+import { broadcastMessage, broadcastMessageSchema } from './tools/broadcast-message.js';
 
 export function createServer() {
   const server = new McpServer({
@@ -64,6 +65,16 @@ export function createServer() {
       inputSchema: checkMessagesSchema,
     },
     checkMessages
+  );
+
+  server.registerTool(
+    'broadcast-message',
+    {
+      title: 'Broadcast Message',
+      description: 'Send a message to all other connected agents',
+      inputSchema: broadcastMessageSchema,
+    },
+    broadcastMessage
   );
 
   return server;

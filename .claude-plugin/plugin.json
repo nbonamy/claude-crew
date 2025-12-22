@@ -9,6 +9,7 @@
   "commands": [
     "./commands/list.md",
     "./commands/send.md",
-    "./commands/check.md"
+    "./commands/check.md",
+    "./commands/broadcast.md"
   ]
 }

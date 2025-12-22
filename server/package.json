@@ -19,7 +19,7 @@
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
-    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs && pm2 save",
     "pm2:stop": "pm2 stop claude-crew",
     "pm2:restart": "pm2 restart claude-crew",
     "pm2:logs": "pm2 logs claude-crew"
