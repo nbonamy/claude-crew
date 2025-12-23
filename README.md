@@ -8,13 +8,18 @@ Install the crew plugin from the marketplace:
 
 ```bash
 # Add the nbonamy marketplace
-/plugin marketplace add nbonamy/claude-marketplace
+claude plugin marketplace add nbonamy/claude-marketplace
 
 # Install the crew plugin
-/plugin install crew@nbonamy
+claude plugin install crew@nbonamy
 ```
 
-Then follow the Quick Start section below to start the server.
+Then add the crew MCP server:
+
+- User install (recommended): `claude mcp add --transport http crew --scope user http://localhost:3333/mcp`
+- Local install: `claude mcp add --transport http crew --scope local http://localhost:3333/mcp`
+
+Finally, follow the Quick Start section below to start the server.
 
 If you installed the marketplace or plugin using the `/plugin` command in Claude Code, you need to exit and restart Claude Code.
 
@@ -30,7 +35,7 @@ npx @nbonamy/claude-crew
 claude
 ```
 
-The plugin connects to the HTTP server on `http://localhost:3000/mcp`.
+The plugin connects to the HTTP server on `http://localhost:3333/mcp`.
 Now you have `/crew:send`, `/crew:check`, `/crew:list` available!
 
 Multiple Claude Code instances can connect to the same server.
@@ -92,7 +97,7 @@ Check your messages. Claude will:
 ### Server Components
 
 1. **MCP Server (Streamable HTTP Transport)**
-   - Listens on http://localhost:3000/mcp
+   - Listens on http://localhost:3333/mcp
    - Provides 5 MCP tools: register-agent, unregister-agent, list-agents, send-message, check-messages
    - Each HTTP connection gets its own server instance sharing the same in-memory storage
 
@@ -151,10 +156,10 @@ Choose a scope:
 
 ```bash
 # User scope (recommended)
-claude mcp add --transport http crew --scope user http://localhost:3000/mcp
+claude mcp add --transport http crew --scope user http://localhost:3333/mcp
 
 # Local scope (current project only)
-claude mcp add --transport http crew --scope local http://localhost:3000/mcp
+claude mcp add --transport http crew --scope local http://localhost:3333/mcp
 
 # Verify
 claude mcp list
@@ -215,15 +220,15 @@ The server logs all operations:
 
 ```bash
 # Health check
-curl http://localhost:3000/health
+curl http://localhost:3333/health
 
 # Register agent (REST API)
-curl -X POST http://localhost:3000/api/register \
+curl -X POST http://localhost:3333/api/register \
   -H "Content-Type: application/json" \
   -d '{"sessionId":"test123","baseFolder":"/tmp/test"}'
 
 # List agents (REST API)
-curl http://localhost:3000/api/list
+curl http://localhost:3333/api/list
 ```
 
 ## Troubleshooting
@@ -232,7 +237,7 @@ curl http://localhost:3000/api/list
 Don't copy to ~/.claude/plugins/ - use `--plugin-dir` instead. Manual copying doesn't register the plugin in `installed_plugins.json`.
 
 ### Hook hangs on startup
-Check that the server is running (`curl http://localhost:3000/health`). Hooks have a 30-second timeout.
+Check that the server is running (`curl http://localhost:3333/health`). Hooks have a 30-second timeout.
 
 ### Messages not received
 Both agents must be registered. Use `/crew:list` to verify registration. Check server logs with `make logs`.
@@ -242,8 +247,8 @@ The startup hook should output your session ID. If not, check the hook logs or r
 
 ## Environment Variables
 
-- `PORT` - Server port (default: 3000)
-- `AGENT_MANAGER_URL` - Server URL for hooks (default: http://localhost:3000)
+- `PORT` - Server port (default: 3333)
+- `AGENT_MANAGER_URL` - Server URL for hooks (default: http://localhost:3333)
 
 ## License
 

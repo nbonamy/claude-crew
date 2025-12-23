@@ -15,7 +15,10 @@
       "Bash(git push:*)",
       "Bash(git reset:*)",
       "Bash(git pull:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "mcp__crew__list-agents",
+      "mcp__crew__broadcast-message",
+      "mcp__crew__check-messages"
     ]
   }
 }
